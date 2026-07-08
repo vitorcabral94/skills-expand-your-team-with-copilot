@@ -14,13 +14,19 @@ document.addEventListener("DOMContentLoaded", () => {
     if (theme === "dark") {
       document.documentElement.setAttribute("data-theme", "dark");
       darkModeToggle.textContent = "☀️";
-      darkModeToggle.title = "Switch to light mode";
-      darkModeToggle.setAttribute("aria-label", "Switch to light mode");
+      darkModeToggle.title = "Dark mode is on. Switch to light mode";
+      darkModeToggle.setAttribute(
+        "aria-label",
+        "Dark mode is on. Switch to light mode"
+      );
     } else {
       document.documentElement.removeAttribute("data-theme");
       darkModeToggle.textContent = "🌙";
-      darkModeToggle.title = "Switch to dark mode";
-      darkModeToggle.setAttribute("aria-label", "Switch to dark mode");
+      darkModeToggle.title = "Dark mode is off. Switch to dark mode";
+      darkModeToggle.setAttribute(
+        "aria-label",
+        "Dark mode is off. Switch to dark mode"
+      );
     }
   }
 
