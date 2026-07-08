@@ -322,7 +322,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function buildActivityShareText(activityName, details) {
-    return `Check out ${activityName} at Mergington High School! ${details.description} Schedule: ${formatSchedule(
+    const cleanActivityName = activityName.trim();
+    const cleanDescription = details.description.trim().replace(/\s+/g, " ");
+
+    return `Check out ${cleanActivityName} at Mergington High School! ${cleanDescription} Schedule: ${formatSchedule(
       details
     )}.`;
   }
@@ -333,15 +336,22 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const temporaryInput = document.createElement("textarea");
-    temporaryInput.value = text;
-    temporaryInput.setAttribute("readonly", "");
-    temporaryInput.style.position = "absolute";
-    temporaryInput.style.left = "-9999px";
-    document.body.appendChild(temporaryInput);
-    temporaryInput.select();
-    document.execCommand("copy");
-    document.body.removeChild(temporaryInput);
+    const temporaryTextarea = document.createElement("textarea");
+    temporaryTextarea.value = text;
+    temporaryTextarea.setAttribute("readonly", "");
+    temporaryTextarea.style.position = "absolute";
+    temporaryTextarea.style.left = "-9999px";
+    document.body.appendChild(temporaryTextarea);
+
+    try {
+      temporaryTextarea.select();
+
+      if (!document.execCommand("copy")) {
+        throw new Error("Copy command was not successful");
+      }
+    } finally {
+      document.body.removeChild(temporaryTextarea);
+    }
   }
 
   async function copyActivityLink(activityName) {
