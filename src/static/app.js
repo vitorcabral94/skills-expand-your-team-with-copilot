@@ -347,7 +347,7 @@ document.addEventListener("DOMContentLoaded", () => {
       temporaryTextarea.select();
 
       if (!document.execCommand("copy")) {
-        throw new Error("Copy command was not successful");
+        throw new Error("Failed to copy the link");
       }
     } finally {
       document.body.removeChild(temporaryTextarea);
@@ -360,7 +360,10 @@ document.addEventListener("DOMContentLoaded", () => {
       showMessage(`Link copied for ${activityName}.`, "success");
     } catch (error) {
       console.error("Error copying activity link:", error);
-      showMessage("Unable to copy the share link right now.", "error");
+      showMessage(
+        "Unable to copy the share link. Please try again or copy the page address.",
+        "error"
+      );
     }
   }
 
