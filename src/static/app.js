@@ -40,6 +40,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let searchQuery = "";
   let currentDay = "";
   let currentTimeRange = "";
+  let sharedActivityName = "";
+  let hasFocusedSharedActivity = false;
 
   // Authentication state
   let currentUser = null;
@@ -50,6 +52,13 @@ document.addEventListener("DOMContentLoaded", () => {
     afternoon: { start: "15:00", end: "18:00" }, // After school hours
     weekend: { days: ["Saturday", "Sunday"] }, // Weekend days
   };
+
+  function getSharedActivityNameFromUrl() {
+    const activityName = new URLSearchParams(window.location.search).get(
+      "activity"
+    );
+    return activityName ? activityName.trim() : "";
+  }
 
   // Initialize filters from active elements
   function initializeFilters() {
@@ -304,6 +313,94 @@ document.addEventListener("DOMContentLoaded", () => {
     return details.schedule;
   }
 
+  function buildActivityShareUrl(activityName) {
+    const shareUrl = new URL(window.location.href);
+    shareUrl.search = "";
+    shareUrl.hash = "";
+    shareUrl.searchParams.set("activity", activityName);
+    return shareUrl.toString();
+  }
+
+  function buildActivityShareText(activityName, details) {
+    return `Check out ${activityName} at Mergington High School! ${details.description} Schedule: ${formatSchedule(
+      details
+    )}.`;
+  }
+
+  async function copyTextToClipboard(text) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return;
+    }
+
+    const temporaryInput = document.createElement("textarea");
+    temporaryInput.value = text;
+    temporaryInput.setAttribute("readonly", "");
+    temporaryInput.style.position = "absolute";
+    temporaryInput.style.left = "-9999px";
+    document.body.appendChild(temporaryInput);
+    temporaryInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(temporaryInput);
+  }
+
+  async function copyActivityLink(activityName) {
+    try {
+      await copyTextToClipboard(buildActivityShareUrl(activityName));
+      showMessage(`Link copied for ${activityName}.`, "success");
+    } catch (error) {
+      console.error("Error copying activity link:", error);
+      showMessage("Unable to copy the share link right now.", "error");
+    }
+  }
+
+  async function shareActivity(activityName, details) {
+    const shareUrl = buildActivityShareUrl(activityName);
+    const shareText = buildActivityShareText(activityName, details);
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `${activityName} | Mergington High School`,
+          text: shareText,
+          url: shareUrl,
+        });
+        return;
+      } catch (error) {
+        if (error.name === "AbortError") {
+          return;
+        }
+
+        console.error("Error using native share:", error);
+      }
+    }
+
+    await copyActivityLink(activityName);
+  }
+
+  function focusSharedActivityCard() {
+    if (!sharedActivityName) {
+      return;
+    }
+
+    const sharedCard = Array.from(
+      activitiesList.querySelectorAll(".activity-card")
+    ).find((card) => card.dataset.activityName === sharedActivityName);
+
+    if (!sharedCard) {
+      return;
+    }
+
+    sharedCard.classList.add("shared-activity-highlight");
+
+    if (hasFocusedSharedActivity) {
+      return;
+    }
+
+    hasFocusedSharedActivity = true;
+    sharedCard.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   // Function to determine activity type (this would ideally come from backend)
   function getActivityType(activityName, description) {
     const name = activityName.toLowerCase();
@@ -470,12 +567,15 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(filteredActivities).forEach(([name, details]) => {
       renderActivityCard(name, details);
     });
+
+    focusSharedActivityCard();
   }
 
   // Function to render a single activity card
   function renderActivityCard(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
+    activityCard.dataset.activityName = name;
 
     // Calculate spots and capacity
     const totalSpots = details.max_participants;
@@ -518,6 +618,13 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       </div>
     `;
+
+    const shareUrl = buildActivityShareUrl(name);
+    const shareText = buildActivityShareText(name, details);
+    const emailSubject = encodeURIComponent(
+      `${name} at Mergington High School`
+    );
+    const emailBody = encodeURIComponent(`${shareText}\n\n${shareUrl}`);
 
     activityCard.innerHTML = `
       ${tagHtml}
@@ -569,6 +676,31 @@ document.addEventListener("DOMContentLoaded", () => {
         `
         }
       </div>
+      <div class="share-actions">
+        <button
+          type="button"
+          class="share-button"
+          data-share-activity="${name}"
+          aria-label="Share ${name}"
+        >
+          Share
+        </button>
+        <button
+          type="button"
+          class="share-button share-button-secondary"
+          data-copy-activity="${name}"
+          aria-label="Copy a link to ${name}"
+        >
+          Copy Link
+        </button>
+        <a
+          class="share-button share-button-secondary share-link-button"
+          href="mailto:?subject=${emailSubject}&body=${emailBody}"
+          aria-label="Email ${name}"
+        >
+          Email
+        </a>
+      </div>
     `;
 
     // Add click handlers for delete buttons
@@ -586,6 +718,16 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       }
     }
+
+    const shareButton = activityCard.querySelector("[data-share-activity]");
+    shareButton.addEventListener("click", async () => {
+      await shareActivity(name, details);
+    });
+
+    const copyButton = activityCard.querySelector("[data-copy-activity]");
+    copyButton.addEventListener("click", async () => {
+      await copyActivityLink(name);
+    });
 
     activitiesList.appendChild(activityCard);
   }
@@ -862,6 +1004,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   // Initialize app
+  sharedActivityName = getSharedActivityNameFromUrl();
   checkAuthentication();
   initializeFilters();
   fetchActivities();
