@@ -33,6 +33,36 @@
   --info-light: #d1ecf1;
 }
 
+/* Dark mode overrides */
+[data-theme="dark"] {
+  --primary: #5c6bc0;
+  --primary-light: #8e99f3;
+  --primary-dark: #26418f;
+  --primary-text: #ffffff;
+
+  --secondary: #ffa040;
+  --secondary-light: #ffd06f;
+  --secondary-dark: #c67100;
+  --secondary-text: #ffffff;
+
+  --background: #121212;
+  --surface: #1e1e1e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaaaaa;
+  --border: #333333;
+  --border-light: #2a2a2a;
+  --border-focus: #444444;
+
+  --success: #66bb6a;
+  --success-light: #1b3a1c;
+  --warning: #ffb74d;
+  --warning-light: #3e2c00;
+  --error: #ef5350;
+  --error-light: #3b1010;
+  --info: #4dd0e1;
+  --info-light: #003d47;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -583,6 +613,7 @@ footer {
 }
 
 .category-filters,
+.difficulty-filters,
 .day-filters,
 .time-filters {
   display: flex;
@@ -591,6 +622,7 @@ footer {
 }
 
 .category-filter,
+.difficulty-filter,
 .day-filter,
 .time-filter {
   background-color: var(--background);
@@ -604,6 +636,7 @@ footer {
 }
 
 .category-filter.active,
+.difficulty-filter.active,
 .day-filter.active,
 .time-filter.active {
   background-color: var(--primary);
@@ -612,6 +645,7 @@ footer {
 }
 
 .category-filter:hover,
+.difficulty-filter:hover,
 .day-filter:hover,
 .time-filter:hover {
   background-color: var(--primary-light);
@@ -662,6 +696,9 @@ footer {
   position: absolute;
   top: 10px;
   right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 #user-status {
@@ -708,4 +745,26 @@ footer {
 
 #logout-button:hover {
   background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Dark mode toggle button */
+#dark-mode-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  padding: 4px 8px;
+  border-radius: 20px;
+  background-color: rgba(255, 255, 255, 0.2);
+  transition: background-color 0.2s;
+  line-height: 1;
+}
+
+#dark-mode-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Dark mode adjustments for activity type colors */
+[data-theme="dark"] .activity-type-badge {
+  opacity: 0.9;
 }
